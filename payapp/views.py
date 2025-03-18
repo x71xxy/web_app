@@ -8,6 +8,9 @@ from .forms import PaymentForm, RequestForm
 import requests
 from decimal import Decimal
 import logging
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Q
+from datetime import datetime, timedelta
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -281,27 +284,110 @@ def notifications_view(request):
 
 @login_required
 def transactions_view(request):
-    # Get all transactions where the user is either sender or receiver
-    transactions = Transaction.objects.filter(
+    # Get filter parameters
+    transaction_type = request.GET.get('type')
+    status = request.GET.get('status')
+    search_query = request.GET.get('q')
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    date_preset = request.GET.get('date_preset')
+    
+    # Base queryset
+    transactions_queryset = Transaction.objects.filter(
         sender=request.user
     ) | Transaction.objects.filter(
         receiver=request.user
-    ).order_by('-timestamp')
+    )
     
-    # Filter by transaction type if specified
-    transaction_type = request.GET.get('type')
+    # Apply filters
     if transaction_type:
-        transactions = transactions.filter(transaction_type=transaction_type.upper())
+        transaction_type = transaction_type.upper()
+        if transaction_type == 'PAYMENT' or transaction_type == 'REQUEST':
+            transactions_queryset = transactions_queryset.filter(transaction_type=transaction_type)
     
-    # Filter by status if specified
-    status = request.GET.get('status')
     if status:
-        transactions = transactions.filter(status=status.upper())
+        status = status.upper()
+        if status in ['PENDING', 'COMPLETED', 'REJECTED']:
+            transactions_queryset = transactions_queryset.filter(status=status)
+    
+    # Apply date filters
+    if date_preset:
+        today = datetime.now().date()
+        if date_preset == 'today':
+            transactions_queryset = transactions_queryset.filter(timestamp__date=today)
+        elif date_preset == 'yesterday':
+            yesterday = today - timedelta(days=1)
+            transactions_queryset = transactions_queryset.filter(timestamp__date=yesterday)
+        elif date_preset == 'this_week':
+            start_of_week = today - timedelta(days=today.weekday())
+            transactions_queryset = transactions_queryset.filter(timestamp__date__gte=start_of_week)
+        elif date_preset == 'this_month':
+            transactions_queryset = transactions_queryset.filter(
+                timestamp__year=today.year,
+                timestamp__month=today.month
+            )
+        elif date_preset == 'last_month':
+            last_month = today.replace(day=1) - timedelta(days=1)
+            transactions_queryset = transactions_queryset.filter(
+                timestamp__year=last_month.year,
+                timestamp__month=last_month.month
+            )
+    else:
+        # Custom date range if provided
+        if date_from:
+            try:
+                date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
+                transactions_queryset = transactions_queryset.filter(timestamp__date__gte=date_from_obj)
+            except ValueError:
+                # Invalid date format, ignore this filter
+                pass
+        
+        if date_to:
+            try:
+                date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
+                # Add one day to include the end date
+                date_to_obj = date_to_obj + timedelta(days=1)
+                transactions_queryset = transactions_queryset.filter(timestamp__date__lt=date_to_obj)
+            except ValueError:
+                # Invalid date format, ignore this filter
+                pass
+    
+    # Apply search query if provided
+    if search_query:
+        # Search in related user emails or transaction details
+        transactions_queryset = transactions_queryset.filter(
+            Q(sender__email__icontains=search_query) | 
+            Q(receiver__email__icontains=search_query) |
+            Q(amount__icontains=search_query)
+        )
+    
+    # Optimize query with select_related to reduce DB hits
+    transactions_queryset = transactions_queryset.select_related('sender', 'receiver').order_by('-timestamp')
+    
+    # Pagination
+    paginator = Paginator(transactions_queryset, 10)  # Show 10 transactions per page
+    page = request.GET.get('page')
+    
+    try:
+        transactions = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page
+        transactions = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range, deliver last page of results
+        transactions = paginator.page(paginator.num_pages)
     
     context = {
         'transactions': transactions,
-        'transaction_type': transaction_type,
-        'status': status
+        'transaction_type': transaction_type.lower() if transaction_type else None,
+        'status': status.lower() if status else None,
+        'search_query': search_query,
+        'date_from': date_from,
+        'date_to': date_to,
+        'date_preset': date_preset,
+        # Add pagination info
+        'is_paginated': True if paginator.num_pages > 1 else False,
+        'page_obj': transactions,
     }
     
     return render(request, 'payapp/transactions.html', context)
