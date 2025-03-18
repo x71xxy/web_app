@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - PayApp{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>Account Information</h4>
+            </div>
+            <div class="card-body">
+                <h2>{{ account.balance }} {{ account.currency }}</h2>
+                <p>Account Holder: {{ user.get_full_name|default:user.username }}</p>
+                <p>Email: {{ user.email }}</p>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-3">
+                    <a href="{% url 'send_payment' %}" class="btn btn-primary me-md-2">Send Payment</a>
+                    <a href="{% url 'request_payment' %}" class="btn btn-secondary">Request Payment</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>Recent Transactions</h4>
+            </div>
+            <div class="card-body">
+                {% if transactions %}
+                <div class="list-group">
+                    {% for transaction in transactions %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">
+                                {% if transaction.sender == user %}
+                                <span class="text-danger">-{{ transaction.amount }} {{ transaction.sender_currency }}</span>
+                                To: {{ transaction.receiver.email }}
+                                {% else %}
+                                <span class="text-success">+{{ transaction.amount }} {{ transaction.sender_currency }}</span>
+                                From: {{ transaction.sender.email }}
+                                {% endif %}
+                            </h5>
+                            <small>{{ transaction.timestamp|date:"Y-m-d H:i" }}</small>
+                        </div>
+                        <p class="mb-1">
+                            Type: {% if transaction.transaction_type == 'PAYMENT' %}Payment{% else %}Payment Request{% endif %}
+                            <span class="badge {% if transaction.status == 'COMPLETED' %}bg-success{% elif transaction.status == 'PENDING' %}bg-warning{% else %}bg-danger{% endif %}">
+                                {% if transaction.status == 'COMPLETED' %}Completed{% elif transaction.status == 'PENDING' %}Pending{% else %}Rejected{% endif %}
+                            </span>
+                        </p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if transactions.count > 0 %}
+                <div class="text-center mt-3">
+                    <a href="{% url 'transactions' %}" class="btn btn-sm btn-outline-primary">View All Transactions</a>
+                </div>
+                {% endif %}
+                {% else %}
+                <p>No transaction records yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if notifications %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h4>Latest Notifications</h4>
+    </div>
+    <div class="card-body">
+        <div class="list-group">
+            {% for notification in notifications %}
+            <div class="list-group-item {% if not notification.is_read %}list-group-item-warning{% endif %}">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">
+                        {% if notification.transaction.transaction_type == 'PAYMENT' %}
+                        Payment Notification
+                        {% else %}
+                        Payment Request
+                        {% endif %}
+                    </h5>
+                    <small>{{ notification.timestamp|date:"Y-m-d H:i" }}</small>
+                </div>
+                <p class="mb-1">
+                    {% if notification.transaction.transaction_type == 'PAYMENT' %}
+                        {% if notification.transaction.sender == user %}
+                        You sent {{ notification.transaction.amount }} {{ notification.transaction.sender_currency }} to {{ notification.transaction.receiver.email }}
+                        {% else %}
+                        {{ notification.transaction.sender.email }} sent you {{ notification.transaction.amount }} {{ notification.transaction.sender_currency }}
+                        {% endif %}
+                    {% else %}
+                        {% if notification.transaction.sender == user %}
+                        {{ notification.transaction.receiver.email }} requested {{ notification.transaction.amount }} {{ notification.transaction.receiver_currency }} from you
+                        
+                        {% if notification.transaction.status == 'PENDING' %}
+                        <div class="mt-2">
+                            <a href="{% url 'handle_request' notification.transaction.id 'accept' %}" class="btn btn-sm btn-success">Accept</a>
+                            <a href="{% url 'handle_request' notification.transaction.id 'reject' %}" class="btn btn-sm btn-danger">Reject</a>
+                        </div>
+                        {% endif %}
+                        
+                        {% else %}
+                        You requested {{ notification.transaction.amount }} {{ notification.transaction.receiver_currency }} from {{ notification.transaction.sender.email }}
+                        {% endif %}
+                    {% endif %}
+                </p>
+                <p class="mb-0">
+                    Status: 
+                    <span class="badge {% if notification.transaction.status == 'COMPLETED' %}bg-success{% elif notification.transaction.status == 'PENDING' %}bg-warning{% else %}bg-danger{% endif %}">
+                        {% if notification.transaction.status == 'COMPLETED' %}Completed{% elif notification.transaction.status == 'PENDING' %}Pending{% else %}Rejected{% endif %}
+                    </span>
+                </p>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-3">
+            <a href="{% url 'notifications' %}" class="btn btn-sm btn-outline-primary">View All Notifications</a>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
