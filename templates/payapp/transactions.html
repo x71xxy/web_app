@@ -1,189 +1,23 @@
-{% extends 'base.html' %} {% block title %}Transaction History - PayApp{%
-endblock %} {% block content %}
+{% extends 'base.html' %}
+{% block title %}Transaction History - PayApp{% endblock %}
+
+{% block content %}
 <div class="card">
   <div class="card-header d-flex justify-content-between align-items-center">
     <h3>Transaction History</h3>
     <div class="btn-group" role="group">
-      <a
-        href="{% url 'transactions' %}"
-        class="btn btn-sm btn-outline-primary {% if not transaction_type %}active{% endif %}"
-        >All</a
-      >
-      <a
-        href="{% url 'transactions' %}?type=payment"
-        class="btn btn-sm btn-outline-primary {% if transaction_type == 'payment' %}active{% endif %}"
-        >Payments</a
-      >
-      <a
-        href="{% url 'transactions' %}?type=request"
-        class="btn btn-sm btn-outline-primary {% if transaction_type == 'request' %}active{% endif %}"
-        >Requests</a
-      >
+      <a href="{% url 'transactions' %}" class="btn btn-sm btn-outline-primary {% if not transaction_type %}active{% endif %}">All</a>
+      <a href="{% url 'transactions' %}?type=payment" class="btn btn-sm btn-outline-primary {% if transaction_type == 'payment' %}active{% endif %}">Payments</a>
+      <a href="{% url 'transactions' %}?type=request" class="btn btn-sm btn-outline-primary {% if transaction_type == 'request' %}active{% endif %}">Requests</a>
     </div>
   </div>
   <div class="card-body">
-    <!-- 添加搜索框 -->
-    <div class="row mb-4">
-      <div class="col-md-6 offset-md-3">
-        <form action="{% url 'transactions' %}" method="get" class="d-flex">
-          {% if transaction_type %}<input
-            type="hidden"
-            name="type"
-            value="{{ transaction_type }}"
-          />{% endif %} {% if status %}<input
-            type="hidden"
-            name="status"
-            value="{{ status }}"
-          />{% endif %}
-          <div class="input-group">
-            <input
-              type="text"
-              name="q"
-              class="form-control"
-              placeholder="Search by email or amount..."
-              value="{{ search_query|default:'' }}"
-            />
-            <button class="btn btn-primary" type="submit">
-              <i class="bi bi-search"></i> Search
-            </button>
-            {% if search_query %}
-            <a
-              href="{% url 'transactions' %}{% if transaction_type %}?type={{ transaction_type }}{% endif %}{% if transaction_type and status %}&{% endif %}{% if status %}status={{ status }}{% endif %}"
-              class="btn btn-outline-secondary"
-            >
-              <i class="bi bi-x-circle"></i> Clear
-            </a>
-            {% endif %}
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- 添加日期筛选 -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="card">
-          <div class="card-header">
-            <h6 class="mb-0">Date Filters</h6>
-          </div>
-          <div class="card-body">
-            <div class="row">
-              <div class="col-md-6">
-                <div class="btn-group mb-3" role="group">
-                  <a
-                    href="{% url 'transactions' %}?{% if transaction_type %}type={{ transaction_type }}&{% endif %}{% if status %}status={{ status }}&{% endif %}{% if search_query %}q={{ search_query }}&{% endif %}date_preset=today"
-                    class="btn btn-sm btn-outline-secondary {% if date_preset == 'today' %}active{% endif %}"
-                    >Today</a
-                  >
-                  <a
-                    href="{% url 'transactions' %}?{% if transaction_type %}type={{ transaction_type }}&{% endif %}{% if status %}status={{ status }}&{% endif %}{% if search_query %}q={{ search_query }}&{% endif %}date_preset=yesterday"
-                    class="btn btn-sm btn-outline-secondary {% if date_preset == 'yesterday' %}active{% endif %}"
-                    >Yesterday</a
-                  >
-                  <a
-                    href="{% url 'transactions' %}?{% if transaction_type %}type={{ transaction_type }}&{% endif %}{% if status %}status={{ status }}&{% endif %}{% if search_query %}q={{ search_query }}&{% endif %}date_preset=this_week"
-                    class="btn btn-sm btn-outline-secondary {% if date_preset == 'this_week' %}active{% endif %}"
-                    >This Week</a
-                  >
-                  <a
-                    href="{% url 'transactions' %}?{% if transaction_type %}type={{ transaction_type }}&{% endif %}{% if status %}status={{ status }}&{% endif %}{% if search_query %}q={{ search_query }}&{% endif %}date_preset=this_month"
-                    class="btn btn-sm btn-outline-secondary {% if date_preset == 'this_month' %}active{% endif %}"
-                    >This Month</a
-                  >
-                  <a
-                    href="{% url 'transactions' %}?{% if transaction_type %}type={{ transaction_type }}&{% endif %}{% if status %}status={{ status }}&{% endif %}{% if search_query %}q={{ search_query }}&{% endif %}date_preset=last_month"
-                    class="btn btn-sm btn-outline-secondary {% if date_preset == 'last_month' %}active{% endif %}"
-                    >Last Month</a
-                  >
-                </div>
-              </div>
-              <div class="col-md-6">
-                <form
-                  action="{% url 'transactions' %}"
-                  method="get"
-                  class="row g-3"
-                >
-                  {% if transaction_type %}<input
-                    type="hidden"
-                    name="type"
-                    value="{{ transaction_type }}"
-                  />{% endif %} {% if status %}<input
-                    type="hidden"
-                    name="status"
-                    value="{{ status }}"
-                  />{% endif %} {% if search_query %}<input
-                    type="hidden"
-                    name="q"
-                    value="{{ search_query }}"
-                  />{% endif %}
-
-                  <div class="col-md-5">
-                    <div class="input-group input-group-sm">
-                      <span class="input-group-text">From</span>
-                      <input
-                        type="date"
-                        class="form-control"
-                        name="date_from"
-                        value="{{ date_from|default:'' }}"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-md-5">
-                    <div class="input-group input-group-sm">
-                      <span class="input-group-text">To</span>
-                      <input
-                        type="date"
-                        class="form-control"
-                        name="date_to"
-                        value="{{ date_to|default:'' }}"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-md-2">
-                    <button type="submit" class="btn btn-sm btn-primary w-100">
-                      Apply
-                    </button>
-                  </div>
-                </form>
-                {% if date_from or date_to or date_preset %}
-                <div class="text-end mt-2">
-                  <a
-                    href="{% url 'transactions' %}?{% if transaction_type %}type={{ transaction_type }}&{% endif %}{% if status %}status={{ status }}&{% endif %}{% if search_query %}q={{ search_query }}{% endif %}"
-                    class="btn btn-sm btn-outline-secondary"
-                  >
-                    <i class="bi bi-x-circle"></i> Clear Date Filters
-                  </a>
-                </div>
-                {% endif %}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <div class="mb-3">
       <div class="btn-group" role="group">
-        <a
-          href="{% url 'transactions' %}{% if transaction_type %}?type={{ transaction_type }}{% endif %}{% if search_query %}q={{ search_query }}{% endif %}"
-          class="btn btn-sm btn-outline-secondary {% if not status %}active{% endif %}"
-          >All Status</a
-        >
-        <a
-          href="{% url 'transactions' %}?{% if transaction_type %}type={{ transaction_type }}&{% endif %}{% if search_query %}q={{ search_query }}&{% endif %}status=completed"
-          class="btn btn-sm btn-outline-success {% if status == 'completed' %}active{% endif %}"
-          >Completed</a
-        >
-        <a
-          href="{% url 'transactions' %}?{% if transaction_type %}type={{ transaction_type }}&{% endif %}{% if search_query %}q={{ search_query }}&{% endif %}status=pending"
-          class="btn btn-sm btn-outline-warning {% if status == 'pending' %}active{% endif %}"
-          >Pending</a
-        >
-        <a
-          href="{% url 'transactions' %}?{% if transaction_type %}type={{ transaction_type }}&{% endif %}{% if search_query %}q={{ search_query }}&{% endif %}status=rejected"
-          class="btn btn-sm btn-outline-danger {% if status == 'rejected' %}active{% endif %}"
-          >Rejected</a
-        >
+        <a href="{% url 'transactions' %}{% if transaction_type %}?type={{ transaction_type }}{% endif %}" class="btn btn-sm btn-outline-secondary {% if not status %}active{% endif %}">All Status</a>
+        <a href="{% url 'transactions' %}?{% if transaction_type %}type={{ transaction_type }}&{% endif %}status=completed" class="btn btn-sm btn-outline-success {% if status == 'completed' %}active{% endif %}">Completed</a>
+        <a href="{% url 'transactions' %}?{% if transaction_type %}type={{ transaction_type }}&{% endif %}status=pending" class="btn btn-sm btn-outline-warning {% if status == 'pending' %}active{% endif %}">Pending</a>
+        <a href="{% url 'transactions' %}?{% if transaction_type %}type={{ transaction_type }}&{% endif %}status=rejected" class="btn btn-sm btn-outline-danger {% if status == 'rejected' %}active{% endif %}">Rejected</a>
       </div>
     </div>
 
@@ -205,213 +39,91 @@ endblock %} {% block content %}
           <tr>
             <td>{{ transaction.timestamp|date:"Y-m-d H:i" }}</td>
             <td>
-              {% if transaction.transaction_type == 'PAYMENT' %} {% if
-              transaction.sender == user %}
-              <span class="text-danger">Sent</span>
-              {% else %}
-              <span class="text-success">Received</span>
-              {% endif %} {% else %} {% if transaction.sender == user %}
-              <span class="text-warning">Request Received</span>
-              {% else %}
-              <span class="text-info">Request Sent</span>
-              {% endif %} {% endif %}
-            </td>
-            <td>
-              {% if transaction.transaction_type == 'PAYMENT' %} {% if
-              transaction.sender == user %}
-              <span class="text-danger"
-                >-{{ transaction.amount }} {{ transaction.sender_currency
-                }}</span
-              >
-              {% else %}
-              <span class="text-success"
-                >+{{ transaction.amount }} {{ transaction.sender_currency
-                }}</span
-              >
-              {% endif %} {% else %} {{ transaction.amount }} {{
-              transaction.receiver_currency }} {% endif %}
-            </td>
-            <td>
-              {% if transaction.sender == user %} {{ transaction.receiver.email
-              }} {% else %} {{ transaction.sender.email }} {% endif %}
-            </td>
-            <td>
-              <span
-                class="badge {% if transaction.status == 'COMPLETED' %}bg-success{% elif transaction.status == 'PENDING' %}bg-warning{% else %}bg-danger{% endif %}"
-              >
-                {% if transaction.status == 'COMPLETED' %} Completed {% elif
-                transaction.status == 'PENDING' %} Pending {% else %} Rejected
+              {% if transaction.transaction_type == 'PAYMENT' %}
+                {% if transaction.sender == user %}
+                  <span class="text-danger">Sent</span>
+                {% else %}
+                  <span class="text-success">Received</span>
                 {% endif %}
+              {% else %}
+                {% if transaction.sender == user %}
+                  <span class="text-warning">Request Sent</span>
+                {% else %}
+                  <span class="text-info">Request Received</span>
+                {% endif %}
+              {% endif %}
+            </td>
+            <td>
+              {% if transaction.transaction_type == 'PAYMENT' %}
+                {% if transaction.sender == user %}
+                  <span class="text-danger">-{{ transaction.amount }} {{ transaction.sender_currency }}</span>
+                {% else %}
+                  <span class="text-success">+{{ transaction.amount }} {{ transaction.sender_currency }}</span>
+                {% endif %}
+              {% else %}
+                {{ transaction.amount }} {{ transaction.receiver_currency }}
+              {% endif %}
+            </td>
+            <td>
+              {% if transaction.sender == user %}
+                {{ transaction.receiver.email }}
+              {% else %}
+                {{ transaction.sender.email }}
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge {% if transaction.status == 'COMPLETED' %}bg-success{% elif transaction.status == 'PENDING' %}bg-warning{% else %}bg-danger{% endif %}">
+                {{ transaction.status|title }}
               </span>
 
-              {% if transaction.transaction_type == 'REQUEST' and
-              transaction.sender == user and transaction.status == 'PENDING' %}
+              {% if transaction.transaction_type == 'REQUEST' and transaction.receiver == user and transaction.status == 'PENDING' %}
               <div class="mt-1">
-                <a
-                  href="{% url 'handle_request' transaction.id 'accept' %}"
-                  class="btn btn-sm btn-success"
-                  >Accept</a
-                >
-                <a
-                  href="{% url 'handle_request' transaction.id 'reject' %}"
-                  class="btn btn-sm btn-danger"
-                  >Reject</a
-                >
+                <a href="{% url 'handle_request' transaction.id 'accept' %}" class="btn btn-sm btn-success">Accept</a>
+                <a href="{% url 'handle_request' transaction.id 'reject' %}" class="btn btn-sm btn-danger">Reject</a>
               </div>
               {% endif %}
             </td>
             <td>
-              <button
-                type="button"
-                class="btn btn-sm btn-info"
-                data-bs-toggle="modal"
-                data-bs-target="#transactionModal{{ transaction.id }}"
-              >
+              <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#transactionModal{{ transaction.id }}">
                 View Details
               </button>
             </td>
           </tr>
-
-          <!-- Modal for transaction details -->
-          <div
-            class="modal fade"
-            id="transactionModal{{ transaction.id }}"
-            tabindex="-1"
-            aria-labelledby="transactionModalLabel{{ transaction.id }}"
-            aria-hidden="true"
-          >
-            <div class="modal-dialog">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h5
-                    class="modal-title"
-                    id="transactionModalLabel{{ transaction.id }}"
-                  >
-                    Transaction Details
-                  </h5>
-                  <button
-                    type="button"
-                    class="btn-close"
-                    data-bs-dismiss="modal"
-                    aria-label="Close"
-                  ></button>
-                </div>
-                <div class="modal-body">
-                  <pre class="bg-light p-3 rounded">
-Transaction ID: {{ transaction.id }}
-Date: {{ transaction.timestamp|date:"Y-m-d H:i:s" }}
-Type: {{ transaction.transaction_type }}
-Amount: {{ transaction.amount }} {{ transaction.sender_currency }}
-{% if transaction.sender_currency != transaction.receiver_currency %}
-Conversion: {{ transaction.amount }} {{ transaction.sender_currency }} → {{ transaction.converted_amount|default:"N/A" }} {{ transaction.receiver_currency }}
-{% endif %}
-Status: {{ transaction.status }}
-Sender: {{ transaction.sender.email }}
-Receiver: {{ transaction.receiver.email }}
-                  </pre>
-                </div>
-                <div class="modal-footer">
-                  <button
-                    type="button"
-                    class="btn btn-secondary"
-                    data-bs-dismiss="modal"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
           {% endfor %}
         </tbody>
       </table>
 
-      <!-- 添加分页控件 -->
-      {% if is_paginated %}
-      <nav aria-label="Transaction pagination">
-        <ul class="pagination justify-content-center mt-4">
-          {% if page_obj.has_previous %}
-          <li class="page-item">
-            <a
-              class="page-link"
-              href="?{% if transaction_type %}type={{ transaction_type }}&{% endif %}{% if status %}status={{ status }}&{% endif %}{% if search_query %}q={{ search_query }}&{% endif %}{% if date_preset %}date_preset={{ date_preset }}&{% endif %}{% if date_from %}date_from={{ date_from }}&{% endif %}{% if date_to %}date_to={{ date_to }}&{% endif %}page=1"
-              aria-label="First"
-            >
-              <span aria-hidden="true">&laquo;&laquo;</span>
-            </a>
-          </li>
-          <li class="page-item">
-            <a
-              class="page-link"
-              href="?{% if transaction_type %}type={{ transaction_type }}&{% endif %}{% if status %}status={{ status }}&{% endif %}{% if search_query %}q={{ search_query }}&{% endif %}{% if date_preset %}date_preset={{ date_preset }}&{% endif %}{% if date_from %}date_from={{ date_from }}&{% endif %}{% if date_to %}date_to={{ date_to }}&{% endif %}page={{ page_obj.previous_page_number }}"
-              aria-label="Previous"
-            >
-              <span aria-hidden="true">&laquo;</span>
-            </a>
-          </li>
-          {% else %}
-          <li class="page-item disabled">
-            <a class="page-link" href="#" tabindex="-1" aria-disabled="true"
-              ><span aria-hidden="true">&laquo;&laquo;</span></a
-            >
-          </li>
-          <li class="page-item disabled">
-            <a class="page-link" href="#" tabindex="-1" aria-disabled="true"
-              ><span aria-hidden="true">&laquo;</span></a
-            >
-          </li>
-          {% endif %} {% for i in page_obj.paginator.page_range %} {% if
-          page_obj.number == i %}
-          <li class="page-item active" aria-current="page">
-            <span class="page-link">{{ i }}</span>
-          </li>
-          {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3'
-          %}
-          <li class="page-item">
-            <a
-              class="page-link"
-              href="?{% if transaction_type %}type={{ transaction_type }}&{% endif %}{% if status %}status={{ status }}&{% endif %}{% if search_query %}q={{ search_query }}&{% endif %}{% if date_preset %}date_preset={{ date_preset }}&{% endif %}{% if date_from %}date_from={{ date_from }}&{% endif %}{% if date_to %}date_to={{ date_to }}&{% endif %}page={{ i }}"
-              >{{ i }}</a
-            >
-          </li>
-          {% endif %} {% endfor %} {% if page_obj.has_next %}
-          <li class="page-item">
-            <a
-              class="page-link"
-              href="?{% if transaction_type %}type={{ transaction_type }}&{% endif %}{% if status %}status={{ status }}&{% endif %}{% if search_query %}q={{ search_query }}&{% endif %}{% if date_preset %}date_preset={{ date_preset }}&{% endif %}{% if date_from %}date_from={{ date_from }}&{% endif %}{% if date_to %}date_to={{ date_to }}&{% endif %}page={{ page_obj.next_page_number }}"
-              aria-label="Next"
-            >
-              <span aria-hidden="true">&raquo;</span>
-            </a>
-          </li>
-          <li class="page-item">
-            <a
-              class="page-link"
-              href="?{% if transaction_type %}type={{ transaction_type }}&{% endif %}{% if status %}status={{ status }}&{% endif %}{% if search_query %}q={{ search_query }}&{% endif %}{% if date_preset %}date_preset={{ date_preset }}&{% endif %}{% if date_from %}date_from={{ date_from }}&{% endif %}{% if date_to %}date_to={{ date_to }}&{% endif %}page={{ page_obj.paginator.num_pages }}"
-              aria-label="Last"
-            >
-              <span aria-hidden="true">&raquo;&raquo;</span>
-            </a>
-          </li>
-          {% else %}
-          <li class="page-item disabled">
-            <a class="page-link" href="#" tabindex="-1" aria-disabled="true"
-              ><span aria-hidden="true">&raquo;</span></a
-            >
-          </li>
-          <li class="page-item disabled">
-            <a class="page-link" href="#" tabindex="-1" aria-disabled="true"
-              ><span aria-hidden="true">&raquo;&raquo;</span></a
-            >
-          </li>
-          {% endif %}
-        </ul>
-      </nav>
-      {% endif %}
-    </div>
-    {% else %}
-    <p class="text-center">No transactions found matching your criteria.</p>
-    {% endif %}
-  </div>
+      {% for transaction in transactions %}
+      <div class="modal fade" id="transactionModal{{ transaction.id }}" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Transaction Details</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <p><strong>Timestamp:</h5> {{ transaction.timestamp|date:"Y-m-d H:i:s" }}</p>
+              <p>Type: {{ transaction.transaction_type }}</p>
+              <p>Amount: {{ transaction.amount }} {{ transaction.sender_currency }}</p>
+              {% if transaction.sender_currency != transaction.receiver_currency %}
+              <p>Converted Amount: {{ transaction.converted_amount|default:"N/A" }} {{ transaction.receiver_currency }}</p>
+              {% endif %}
+              <p>Status: {{ transaction.status|title }}</p>
+              <p>Sender: {{ transaction.sender.email }}</p>
+              <p>Receiver: {{ transaction.receiver.email }}</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p class="text-center">No transactions found matching your criteria.</p>
+{% endif %}
 </div>
 {% endblock %}
