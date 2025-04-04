@@ -1,0 +1,20 @@
+{
+  "editor.formatOnType": false,
+  "editor.formatOnEnter": false,
+  "editor.autoClosingBrackets": "never",
+  "editor.autoClosingQuotes": "never",
+  "editor.autoSurround": "never",
+  "files.autoSave": "off",
+  "emmet.triggerExpansionOnTab": false,
+  "emmet.includeLanguages": {
+    "django-html": ""
+  },
+  "[django-html]": {
+    "editor.formatOnSave": false,
+    "editor.formatOnType": false,
+    "editor.autoClosingBrackets": "never"
+  },
+  "editor.codeActionsOnSave": null,
+  "editor.suggest.snippetsPreventQuickSuggestions": false
+}
+

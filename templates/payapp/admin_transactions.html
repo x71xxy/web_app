@@ -1,5 +1,6 @@
-{% extends 'base.html' %} {% block title %}All Transactions - PayApp{% endblock
-%} {% block content %}
+{% extends 'base.html' %}
+{% block title %}All Transactions - PayApp{% endblock %}
+{% block content %}
 <div class="card">
   <div class="card-header d-flex justify-content-between align-items-center">
     <h3>All Transactions</h3>
@@ -42,9 +43,13 @@
               <span
                 class="badge {% if transaction.status == 'COMPLETED' %}bg-success{% elif transaction.status == 'PENDING' %}bg-warning{% else %}bg-danger{% endif %}"
               >
-                {% if transaction.status == 'COMPLETED' %}Completed{% elif
-                transaction.status == 'PENDING' %}Pending{% else %}Rejected{%
-                endif %}
+                {% if transaction.status == 'COMPLETED' %} 
+                  Completed 
+                {% elif transaction.status == 'PENDING' %} 
+                  Pending 
+                {% else %} 
+                  Rejected
+                {% endif %}
               </span>
             </td>
             <td>
@@ -58,33 +63,38 @@
               </button>
             </td>
           </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
 
-          <!-- Modal for transaction details -->
-          <div
-            class="modal fade"
-            id="adminTransactionModal{{ transaction.id }}"
-            tabindex="-1"
-            aria-labelledby="adminTransactionModalLabel{{ transaction.id }}"
-            aria-hidden="true"
-          >
-            <div class="modal-dialog">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h5
-                    class="modal-title"
-                    id="adminTransactionModalLabel{{ transaction.id }}"
-                  >
-                    Transaction Details
-                  </h5>
-                  <button
-                    type="button"
-                    class="btn-close"
-                    data-bs-dismiss="modal"
-                    aria-label="Close"
-                  ></button>
-                </div>
-                <div class="modal-body">
-                  <pre class="bg-light p-3 rounded">
+    {% for transaction in transactions %}
+    <!-- Modal for transaction details -->
+    <div
+      class="modal fade"
+      id="adminTransactionModal{{ transaction.id }}"
+      tabindex="-1"
+      aria-labelledby="adminTransactionModalLabel{{ transaction.id }}"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5
+              class="modal-title"
+              id="adminTransactionModalLabel{{ transaction.id }}"
+            >
+              Transaction Details
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <pre class="bg-light p-3 rounded">
 Transaction ID: {{ transaction.id }}
 Date: {{ transaction.timestamp|date:"Y-m-d H:i:s" }}
 Type: {{ transaction.transaction_type }}
@@ -108,24 +118,22 @@ Original: {{ transaction.amount }} {{ transaction.sender_currency }}
 {% if transaction.sender_currency != transaction.receiver_currency %}
 Converted: {% if transaction.converted_amount %}{{ transaction.converted_amount }}{% else %}Not converted yet{% endif %} {{ transaction.receiver_currency }}
 {% endif %}
-                  </pre>
-                </div>
-                <div class="modal-footer">
-                  <button
-                    type="button"
-                    class="btn btn-secondary"
-                    data-bs-dismiss="modal"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </div>
+            </pre>
           </div>
-          {% endfor %}
-        </tbody>
-      </table>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
+    {% endfor %}
+    
     {% else %}
     <p class="text-center">No transactions recorded in the system yet.</p>
     {% endif %}

@@ -1,5 +1,5 @@
-{% extends 'base.html' %} {% block title %}Admin Dashboard - PayApp{% endblock
-%} {% block content %}
+{% extends 'base.html' %} {% block title %}Admin Dashboard - PayApp{% endblock%}
+{% block content %}
 <div class="row mb-4">
   <div class="col-md-4">
     <div class="card text-white bg-primary mb-3">
@@ -59,8 +59,7 @@
               <span
                 class="badge {% if account.user.is_active %}bg-success{% else %}bg-danger{% endif %}"
               >
-                {% if account.user.is_active %}Active{% else %}Inactive{% endif
-                %}
+                {% if account.user.is_active %}Active{% else %}Inactive{%endif%}
               </span>
               {% if account.user.is_staff %}
               <span class="badge bg-info">Admin</span>
