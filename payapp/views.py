@@ -328,21 +328,20 @@ def transactions_view(request):
 @login_required
 def handle_request_view(request, transaction_id, action):
     # Get the transaction
-    transaction = get_object_or_404(Transaction, id=transaction_id)
+    try:
+        transaction = Transaction.objects.get(id=transaction_id)
+    except Transaction.DoesNotExist:
+        messages.error(request, "Transaction not found.")
+        return redirect('notifications')
     
-    # Check if user is the sender (the one who needs to approve/reject)
+    # Check if this request is meant for this user
     if transaction.sender != request.user:
-        messages.error(request, "You are not authorized to perform this action.")
+        messages.error(request, "You don't have permission to handle this request.")
         return redirect('notifications')
     
-    # Check if transaction is still pending
+    # Check if the transaction is still pending
     if transaction.status != 'PENDING':
-        messages.error(request, "This request has already been processed.")
-        return redirect('notifications')
-    
-    # Check if it's a request payment transaction
-    if transaction.transaction_type != 'REQUEST':
-        messages.error(request, "This is not a payment request.")
+        messages.error(request, "This request has already been handled.")
         return redirect('notifications')
     
     if action == 'accept':
@@ -351,7 +350,8 @@ def handle_request_view(request, transaction_id, action):
             messages.error(request, "You don't have enough funds to accept this request.")
             return redirect('notifications')
         
-        with transaction.atomic():
+        from django.db import transaction as db_transaction
+        with db_transaction.atomic():
             # Update transaction status
             transaction.status = 'COMPLETED'
             
@@ -401,7 +401,8 @@ def handle_request_view(request, transaction_id, action):
         messages.success(request, "Payment request accepted successfully.")
     
     elif action == 'reject':
-        with transaction.atomic():
+        from django.db import transaction as db_transaction
+        with db_transaction.atomic():
             # Update transaction status
             transaction.status = 'REJECTED'
             transaction.save()
