@@ -1,14 +1,25 @@
+"""
+Django settings for webapps2025 project.
+"""
+
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-your-secret-key-here'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-default-key-for-dev')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 # Security settings
 if not DEBUG:  # Production settings
@@ -42,7 +53,7 @@ CSP_IMG_SRC = ("'self'",)
 CSP_FONT_SRC = ("'self'",)
 
 # Allowed Hosts
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '3.89.10.50']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '3.226.139.61', 'xiong71.xyz', 'www.xiong71.xyz', 'pay.xiong71.xyz']
 
 # Application definition
 INSTALLED_APPS = [
@@ -93,8 +104,12 @@ WSGI_APPLICATION = 'webapps2025.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'webapps.db'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME', 'webapps2025'),
+        'USER': os.environ.get('DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
 
