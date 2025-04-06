@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}Transaction History - PayApp{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h3>Transaction History</h3>
+    <div class="btn-group" role="group">
+      <a href="{% url 'transactions' %}" class="btn btn-sm btn-outline-primary {% if not transaction_type %}active{% endif %}">All</a>
+      <a href="{% url 'transactions' %}?type=payment" class="btn btn-sm btn-outline-primary {% if transaction_type == 'payment' %}active{% endif %}">Payments</a>
+      <a href="{% url 'transactions' %}?type=request" class="btn btn-sm btn-outline-primary {% if transaction_type == 'request' %}active{% endif %}">Requests</a>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="mb-3">
+      <div class="btn-group" role="group">
+        <a href="{% url 'transactions' %}{% if transaction_type %}?type={{ transaction_type }}{% endif %}" class="btn btn-sm btn-outline-secondary {% if not status %}active{% endif %}">All Status</a>
+        <a href="{% url 'transactions' %}?{% if transaction_type %}type={{ transaction_type }}&{% endif %}status=completed" class="btn btn-sm btn-outline-success {% if status == 'completed' %}active{% endif %}">Completed</a>
+        <a href="{% url 'transactions' %}?{% if transaction_type %}type={{ transaction_type }}&{% endif %}status=pending" class="btn btn-sm btn-outline-warning {% if status == 'pending' %}active{% endif %}">Pending</a>
+        <a href="{% url 'transactions' %}?{% if transaction_type %}type={{ transaction_type }}&{% endif %}status=rejected" class="btn btn-sm btn-outline-danger {% if status == 'rejected' %}active{% endif %}">Rejected</a>
+      </div>
+    </div>
+
+    {% if transactions %}
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>With</th>
+            <th>Status</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for transaction in transactions %}
+          <tr>
+            <td>{{ transaction.timestamp|date:"Y-m-d H:i" }}</td>
+            <td>
+              {% if transaction.transaction_type == 'PAYMENT' %}
+                {% if transaction.sender == user %}
+                  <span class="text-danger">Sent</span>
+                {% else %}
+                  <span class="text-success">Received</span>
+                {% endif %}
+              {% else %}
+                {% if transaction.sender == user %}
+                  <span class="text-warning">Request Sent</span>
+                {% else %}
+                  <span class="text-info">Request Received</span>
+                {% endif %}
+              {% endif %}
+            </td>
+            <td>
+              {% if transaction.transaction_type == 'PAYMENT' %}
+                {% if transaction.sender == user %}
+                  <span class="text-danger">-{{ transaction.amount }} {{ transaction.sender_currency }}</span>
+                {% else %}
+                  <span class="text-success">+{{ transaction.amount }} {{ transaction.sender_currency }}</span>
+                {% endif %}
+              {% else %}
+                {{ transaction.amount }} {{ transaction.receiver_currency }}
+              {% endif %}
+            </td>
+            <td>
+              {% if transaction.sender == user %}
+                {{ transaction.receiver.email }}
+              {% else %}
+                {{ transaction.sender.email }}
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge {% if transaction.status == 'COMPLETED' %}bg-success{% elif transaction.status == 'PENDING' %}bg-warning{% else %}bg-danger{% endif %}">
+                {{ transaction.status|title }}
+              </span>
+
+              {% if transaction.transaction_type == 'REQUEST' and transaction.receiver == user and transaction.status == 'PENDING' %}
+              <div class="mt-1">
+                <a href="{% url 'handle_request' transaction.id 'accept' %}" class="btn btn-sm btn-success">Accept</a>
+                <a href="{% url 'handle_request' transaction.id 'reject' %}" class="btn btn-sm btn-danger">Reject</a>
+              </div>
+              {% endif %}
+            </td>
+            <td>
+              <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#transactionModal{{ transaction.id }}">
+                View Details
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      {% for transaction in transactions %}
+      <div class="modal fade" id="transactionModal{{ transaction.id }}" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Transaction Details</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <p><strong>Timestamp:</h5> {{ transaction.timestamp|date:"Y-m-d H:i:s" }}</p>
+              <p>Type: {{ transaction.transaction_type }}</p>
+              <p>Amount: {{ transaction.amount }} {{ transaction.sender_currency }}</p>
+              {% if transaction.sender_currency != transaction.receiver_currency %}
+              <p>Converted Amount: {{ transaction.converted_amount|default:"N/A" }} {{ transaction.receiver_currency }}</p>
+              {% endif %}
+              <p>Status: {{ transaction.status|title }}</p>
+              <p>Sender: {{ transaction.sender.email }}</p>
+              <p>Receiver: {{ transaction.receiver.email }}</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p class="text-center">No transactions found matching your criteria.</p>
+{% endif %}
+</div>
+{% endblock %}

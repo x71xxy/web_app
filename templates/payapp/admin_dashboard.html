@@ -1,0 +1,75 @@
+{% extends 'base.html' %} {% block title %}Admin Dashboard - PayApp{% endblock%}
+{% block content %}
+<div class="row mb-4">
+  <div class="col-md-4">
+    <div class="card text-white bg-primary mb-3">
+      <div class="card-body">
+        <h5 class="card-title">Total Users</h5>
+        <p class="card-text display-4">{{ user_count }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card text-white bg-success mb-3">
+      <div class="card-body">
+        <h5 class="card-title">Total Transactions</h5>
+        <p class="card-text display-4">{{ transaction_count }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card text-white bg-info mb-3">
+      <div class="card-body">
+        <h5 class="card-title">Admin Actions</h5>
+        <a href="{% url 'register_admin' %}" class="btn btn-light"
+          >Register New Admin</a
+        >
+        <a href="{% url 'admin_transactions' %}" class="btn btn-light mt-2"
+          >View All Transactions</a
+        >
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h3>User Accounts</h3>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Balance</th>
+            <th>Currency</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for account in accounts %}
+          <tr>
+            <td>{{ account.user.username }}</td>
+            <td>{{ account.user.email }}</td>
+            <td>{{ account.balance }}</td>
+            <td>{{ account.currency }}</td>
+            <td>
+              <span
+                class="badge {% if account.user.is_active %}bg-success{% else %}bg-danger{% endif %}"
+              >
+                {% if account.user.is_active %}Active{% else %}Inactive{%endif%}
+              </span>
+              {% if account.user.is_staff %}
+              <span class="badge bg-info">Admin</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

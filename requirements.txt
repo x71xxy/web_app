@@ -1,0 +1,10 @@
+Django==4.2.7
+crispy-bootstrap5==0.7
+django-crispy-forms==2.0
+requests==2.31.0
+python-dotenv==1.0.0
+django-extensions==3.2.3
+gunicorn==21.2.0
+psycopg2-binary==2.9.9
+whitenoise==6.5.0  # for static files handling
+pyOpenSSL==23.2.0  # for SSL/TLS support
